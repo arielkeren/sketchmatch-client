@@ -40,23 +40,22 @@ const OpponentCanvas: React.FC = () => {
       context.fillRect(0, 0, canvas.current.width, canvas.current.height);
     };
 
-    server.onmessage = event => {
-      const data = JSON.parse(event.data);
-      if (!isMatchResponse(data)) return;
-      if (data.type === "stroke") return drawStroke(data.stroke);
-      if (data.type === "clear") clear();
-    };
+    server.on("stroke", data => drawStroke(data.stroke));
+    server.on("clear", clear);
   }, [server]);
 
   useEffect(() => {
     const resize = () => {
       if (!canvas.current) return;
+      console.log("resize")
       canvas.current.width = window.innerWidth / 2 - 8;
       canvas.current.height = window.innerHeight - 196;
       const context = canvas.current.getContext("2d");
 
       if (!context) return;
 
+      context.fillStyle = "black";
+      context.fillRect(0, 0, canvas.current.width, canvas.current.height);
       context.lineCap = "round";
       context.strokeStyle = "black";
       context.lineWidth = 15;
@@ -68,11 +67,7 @@ const OpponentCanvas: React.FC = () => {
     return () => window.removeEventListener("resize", resize);
   }, [canvas]);
 
-  return (
-    <div>
-      <canvas ref={canvas} />
-    </div>
-  );
+  return <canvas ref={canvas} />;
 };
 
 export default OpponentCanvas;

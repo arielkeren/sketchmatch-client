@@ -27,6 +27,13 @@ type MatchResponse =
       type: "ready";
     }
   | {
+      type: "start";
+      word: Word;
+    }
+  | {
+      type: "win";
+    }
+  | {
       type: "create";
       code: string;
     }
@@ -75,6 +82,9 @@ export const isMatchResponse = (
       "type" in response &&
       (response.type === "stroke" ||
         response.type === "clear" ||
+        response.type === "ready" ||
+        response.type === "start" ||
+        response.type === "win" ||
         response.type === "create" ||
         response.type === "join" ||
         response.type === "error")
@@ -84,6 +94,9 @@ export const isMatchResponse = (
 
   if (response.type === "stroke")
     return "stroke" in response && isStroke(response.stroke);
+
+  if (response.type === "start")
+    return "word" in response && isWord(response.word);
 
   if (response.type === "create")
     return "code" in response && typeof response.code === "string";

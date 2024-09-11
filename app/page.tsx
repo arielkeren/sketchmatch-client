@@ -6,7 +6,6 @@ import useModal from "./hooks/useModal";
 import JoinMatchModal from "./components/JoinMatchModal";
 import { useRouter } from "next/navigation";
 import useServer from "./hooks/useServer";
-import { isMatchResponse } from "./types";
 import useAuth from "./hooks/useAuth";
 
 const Home: React.FC = () => {
@@ -16,13 +15,9 @@ const Home: React.FC = () => {
   const user = useAuth();
 
   const createMatch = () => {
-    if (!server || server.readyState !== WebSocket.OPEN) return;
-    server.send(JSON.stringify({ type: "create", username: user.username }));
-    server.onmessage = event => {
-      const data = JSON.parse(event.data);
-      if (!isMatchResponse(data)) return;
-      if (data.type === "create") router.push(`match/${data.code}`);
-    };
+    if (!server || server.disconnected) return;
+    server.emit("create", { username: user.username });
+    server.on("create", data => router.push(`match/${data.code}`));
   };
 
   return (

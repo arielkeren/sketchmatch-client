@@ -2,7 +2,6 @@ import { useRouter } from "next/navigation";
 import { useRef } from "react";
 import { IoMdClose } from "react-icons/io";
 import useServer from "../hooks/useServer";
-import { isMatchResponse } from "../types";
 import useAuth from "../hooks/useAuth";
 
 type Props = {
@@ -16,29 +15,21 @@ const JoinMatchModal: React.FC<Props> = ({ close }) => {
   const router = useRouter();
 
   const joinMatch = () => {
-    if (!input.current || !server || server.readyState !== WebSocket.OPEN)
-      return;
+    if (!input.current || !server || server.disconnected) return;
 
-    server.send(
-      JSON.stringify({
-        type: "join",
-        code: input.current.value,
-        username: user.username,
-      })
-    );
-    console.log("Joining match");
-    server.onmessage = event => {
+    server.emit("join", {
+      code: input.current.value,
+      username: user.username,
+    });
+
+    server.on("join", data => {
       if (!input.current) return;
 
-      const data = JSON.parse(event.data);
-      if (!isMatchResponse(data)) return;
+      localStorage.setItem("username", data.username);
+      router.push(`match/${input.current.value}`);
+    });
 
-      if (data.type === "join") {
-        localStorage.setItem("username", data.username);
-        return router.push(`match/${input.current.value}`);
-      }
-      if (data.type === "error") alert(data.message);
-    };
+    server.on("error", data => alert(data.message));
   };
 
   return (

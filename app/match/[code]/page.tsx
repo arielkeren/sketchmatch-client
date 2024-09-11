@@ -5,24 +5,40 @@ import PlayerCanvas from "@/app/components/PlayerCanvas";
 import Header from "@/app/components/Header";
 import useDisableContextMenu from "@/app/hooks/useDisableContextMenu";
 import useServer from "@/app/hooks/useServer";
-import { useEffect, useState } from "react";
-import { isMatchResponse } from "@/app/types";
+import { useEffect, useRef, useState } from "react";
+import { isGuessResponse, isMatchResponse, Word } from "@/app/types";
 import WaitingForOpponent from "@/app/components/WaitingForOpponent";
 import GameScreen from "@/app/components/GameScreen";
 import useAuth from "@/app/hooks/useAuth";
 import SketchInfo from "@/app/components/SketchInfo";
 import Ready from "@/app/components/Ready";
+import RoundInfo from "@/app/components/RoundInfo";
+import GameManager from "@/app/components/GameManager";
 
 const Match: React.FC = () => {
+  const [word, setWord] = useState<Word | null>(null);
+  const [guess, setGuess] = useState<Word | null>(null);
+  const [round, setRound] = useState(1);
+  const [timeLeft, setTimeLeft] = useState(30);
+  const [score, setScore] = useState(0);
+  const [opponentScore, setOpponentScore] = useState(0);
+  const [isStopped, setIsStopped] = useState(true);
   const [opponent, setOpponent] = useState<string | null>(null);
   const [isReady, setIsReady] = useState(false);
   const [isOpponentReady, setIsOpponentReady] = useState(false);
+  const canvas = useRef<HTMLCanvasElement | null>(null);
   const server = useServer();
   const user = useAuth();
   useDisableContextMenu();
 
-  useEffect(() => {
+  const readyUp = () => {
     if (!server) return;
+    setIsReady(true);
+    server.emit("ready");
+  };
+
+  useEffect(() => {
+    if (!server || server.disconnected) return;
 
     const username = localStorage.getItem("username");
     if (username !== null) {
@@ -30,38 +46,63 @@ const Match: React.FC = () => {
       localStorage.removeItem("username");
     }
 
-    server.onmessage = event => {
-      const data = JSON.parse(event.data);
-      if (!isMatchResponse(data)) return;
-      if (data.type === "join") setOpponent(data.username);
-      if (data.type === "ready") setIsOpponentReady(true);
-    };
+    server.on("join", data => setOpponent(data.username));
+    server.on("ready", () => setIsOpponentReady(true));
+    server.on("start", data => {
+      setWord(data.word);
+      setIsStopped(false);
+    });
+    server.on("win", () => {
+      setOpponentScore(prevScore => prevScore + 1);
+      endRound(false);
+    });
   }, [server]);
 
-  const readyUp = () => {
-    if (!server) return;
-    setIsReady(true);
-    server.send(JSON.stringify({ type: "ready" }));
+  const endRound = (isWin: boolean) => {
+    setIsReady(false);
+    setIsOpponentReady(false);
+    setWord(null);
+    setGuess(null);
+    setRound(prevRound => prevRound + 1);
+    setTimeLeft(30);
+    setIsStopped(true);
+
+    if (isWin) setScore(prevScore => prevScore + 1);
   };
 
   return (
     <>
       <Header />
-      <SketchInfo word="broccoli" guess={null} isCentered={true} />
+
+      {!isStopped && (
+        <>
+          <SketchInfo word={word!} guess={guess} isCentered={true} />
+          <RoundInfo round={round} timeLeft={timeLeft} />
+          <GameManager
+            canvas={canvas}
+            word={word!}
+            timeLeft={timeLeft}
+            setGuess={setGuess}
+            setTimeLeft={setTimeLeft}
+            endRound={endRound}
+          />
+        </>
+      )}
+
       <div className="flex" style={{ height: "calc(100vh - 96px)" }}>
-        <GameScreen username={user.username} isLeft={true}>
-          {isReady && isOpponentReady ? (
-            <PlayerCanvas />
-          ) : (
+        <GameScreen username={user.username} score={score} isLeft={true}>
+          {!isStopped ? (
+            <PlayerCanvas canvas={canvas} />
+          ) : opponent !== null ? (
             <Ready isReady={isReady} readyUp={readyUp} />
-          )}
+          ) : null}
         </GameScreen>
 
         {opponent === null ? (
           <WaitingForOpponent />
         ) : (
-          <GameScreen username={opponent} isLeft={false}>
-            {isReady && isOpponentReady ? (
+          <GameScreen username={opponent} score={opponentScore} isLeft={false}>
+            {!isStopped ? (
               <OpponentCanvas />
             ) : (
               <Ready isReady={isOpponentReady} readyUp={null} />

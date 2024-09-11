@@ -1,12 +1,15 @@
 import { useState, useRef, useEffect } from "react";
 import { FaEraser } from "react-icons/fa6";
 import useServer from "../hooks/useServer";
-import { Stroke } from "../types";
+import { isGuessResponse, Stroke, Word } from "../types";
 import useCanvas from "../hooks/useCanvas";
 
-const PlayerCanvas: React.FC = () => {
+type Props = {
+  canvas: React.MutableRefObject<HTMLCanvasElement | null>;
+};
+
+const PlayerCanvas: React.FC<Props> = ({ canvas }) => {
   const [isPressed, setIsPressed] = useState(false);
-  const canvas = useRef<HTMLCanvasElement | null>(null);
   const server = useServer();
   useCanvas(canvas);
 
@@ -22,19 +25,16 @@ const PlayerCanvas: React.FC = () => {
 
     context.strokeStyle = event.button === 0 ? "black" : "white";
 
-    if (server && server.readyState === WebSocket.OPEN) {
-      server.send(
-        JSON.stringify({
-          type: "stroke",
+    if (server && server.connected)
+      server.emit(
+        "stroke", {
           stroke: {
             x: event.nativeEvent.offsetX / canvas.current.width,
             y: event.nativeEvent.offsetY / canvas.current.height,
             color: context.strokeStyle,
             isNew: true,
           },
-        })
-      );
-    }
+        });
   };
 
   const updateDraw = (event: React.MouseEvent<HTMLCanvasElement>) => {
@@ -54,8 +54,8 @@ const PlayerCanvas: React.FC = () => {
     stroke.x /= canvas.current.width;
     stroke.y /= canvas.current.height;
 
-    if (server && server.readyState === WebSocket.OPEN)
-      server.send(JSON.stringify({ type: "stroke", stroke }));
+    if (server && server.connected)
+      server.emit("stroke", { stroke });
   };
 
   const endDraw = () => {
@@ -85,10 +85,8 @@ const PlayerCanvas: React.FC = () => {
     context.fillStyle = "white";
     context.fillRect(0, 0, canvas.current.width, canvas.current.height);
 
-    if (server && server.readyState === WebSocket.OPEN) {
-      server.send(JSON.stringify({ type: "clear" }));
-      console.log("clear");
-    }
+    if (server && server.connected)
+      server.emit("clear");
   };
 
   useEffect(() => {
@@ -100,6 +98,8 @@ const PlayerCanvas: React.FC = () => {
 
       if (!context) return;
 
+      context.fillStyle = "white";
+      context.fillRect(0, 0, canvas.current.width, canvas.current.height);
       context.lineCap = "round";
       context.strokeStyle = "black";
       context.lineWidth = 15;
