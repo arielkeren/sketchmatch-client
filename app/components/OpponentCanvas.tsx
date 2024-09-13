@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import useServer from "../hooks/useServer";
-import { isMatchResponse, Stroke } from "../types";
+import { Stroke } from "../types";
 import useCanvas from "../hooks/useCanvas";
 
 const OpponentCanvas: React.FC = () => {
@@ -47,14 +47,14 @@ const OpponentCanvas: React.FC = () => {
   useEffect(() => {
     const resize = () => {
       if (!canvas.current) return;
-      console.log("resize")
+
       canvas.current.width = window.innerWidth / 2 - 8;
       canvas.current.height = window.innerHeight - 196;
       const context = canvas.current.getContext("2d");
 
       if (!context) return;
 
-      context.fillStyle = "black";
+      context.fillStyle = "white";
       context.fillRect(0, 0, canvas.current.width, canvas.current.height);
       context.lineCap = "round";
       context.strokeStyle = "black";
@@ -67,7 +67,11 @@ const OpponentCanvas: React.FC = () => {
     return () => window.removeEventListener("resize", resize);
   }, [canvas]);
 
-  return <canvas ref={canvas} />;
+  return (
+    <div>
+      <canvas ref={canvas} />
+    </div>
+  );
 };
 
 export default OpponentCanvas;
