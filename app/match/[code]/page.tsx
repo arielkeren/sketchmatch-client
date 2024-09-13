@@ -51,9 +51,12 @@ const Match: React.FC = () => {
       setTimeLeft(30);
       setIsStopped(true);
 
-      if (isWin) setScore(prevScore => prevScore + 1);
+      if (isWin) {
+        setScore(prevScore => prevScore + 1);
+        if (server && server.connected) server.emit("win");
+      }
     },
-    [guess, results, word]
+    [guess, results, word, server]
   );
 
   useEffect(() => {

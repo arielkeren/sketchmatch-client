@@ -38,8 +38,7 @@ const GameManager: React.FC<Props> = ({
     }
 
     async function guessSketch() {
-      if (!canvas.current || !server || server.disconnected)
-        return;
+      if (!canvas.current || !server || server.disconnected) return;
 
       canvas.current.toBlob(async blob => {
         if (!blob) return;
@@ -60,7 +59,6 @@ const GameManager: React.FC<Props> = ({
         if (data.guess == word) {
           clearInterval(roundTimer);
           clearInterval(guessTimer);
-          server.emit("win");
           endRound(true);
         }
       }, "image/jpg");
@@ -70,11 +68,11 @@ const GameManager: React.FC<Props> = ({
       clearInterval(roundTimer);
       clearInterval(guessTimer);
     };
-  }, []);
+  }, [canvas, server, word, setGuess, setTimeLeft, endRound]);
 
   useEffect(() => {
     if (timeLeft === 0) endRound(false);
-  }, [timeLeft]);
+  }, [timeLeft, endRound]);
 
   return <></>;
 };
