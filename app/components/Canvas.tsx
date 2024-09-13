@@ -80,7 +80,7 @@ const Canvas: React.FC<Props> = ({ canvas }) => {
       />
       <button
         onClick={clear}
-        className="absolute bottom-5 right-5 bg-gray-100 p-2 rounded drop-shadow-lg transition-colors duration-200 hover:bg-gray-900 hover:text-white"
+        className="absolute bottom-0 right-5 bg-gray-100 p-2 rounded drop-shadow-lg transition-colors duration-200 hover:bg-gray-900 hover:text-white"
       >
         <FaEraser className="text-4xl" />
       </button>

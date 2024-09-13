@@ -15,9 +15,7 @@ const CopyCodeButton: React.FC = () => {
   useEffect(() => {
     if (!isCopied) return;
 
-    const timeout = setTimeout(() => {
-      setIsCopied(false);
-    }, 2000);
+    const timeout = setTimeout(() => setIsCopied(false), 2000);
 
     return () => clearTimeout(timeout);
   }, [isCopied]);
