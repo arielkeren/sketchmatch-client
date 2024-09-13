@@ -9,18 +9,22 @@ const ErrorMessage: React.FC<Props> = ({ message, close }) => {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    setVisible(true);
-    const timeout = setTimeout(() => {
+    const startTimeout = setTimeout(() => setVisible(true), 100);
+
+    const endTimeout = setTimeout(() => {
       setVisible(false);
       setTimeout(close, 500);
     }, 3000);
 
-    return () => clearTimeout(timeout);
+    return () => {
+      clearTimeout(startTimeout);
+      clearTimeout(endTimeout);
+    };
   }, [close]);
 
   return (
     <div
-      className={`fixed top-0 left-1/2 -translate-x-1/2 bg-red-500 py-5 px-20 drop-shadow-lg rounded transition-transform duration-500 ${
+      className={`fixed top-0 left-1/2 -translate-x-1/2 bg-red-600 py-5 px-20 drop-shadow-lg rounded transition-transform duration-500 ${
         visible ? "translate-y-20" : "-translate-y-full"
       }`}
     >
