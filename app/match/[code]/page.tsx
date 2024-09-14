@@ -29,27 +29,35 @@ const Match: React.FC = () => {
   const [isReady, setIsReady] = useState(false);
   const [isOpponentReady, setIsOpponentReady] = useState(false);
   const [results, setResults] = useState<Result[]>([]);
+  const [hasWinEventBeenHandled, setHasWinEventBeenHandled] = useState(false);
   const canvas = useRef<HTMLCanvasElement | null>(null);
   const server = useServer();
   const user = useAuth();
   useDisableContextMenu();
 
   const readyUp = () => {
-    if (!server) return;
+    if (!server || server.disconnected) return;
+
     setIsReady(true);
     server.emit("ready");
+
+    if (round === 6) {
+      setRound(1);
+      setScore(0);
+      setOpponentScore(0);
+      setResults([]);
+    }
   };
 
   const endRound = useCallback(
     (isWin: boolean) => {
       setResults([...results, { word: word!, guess: guess! }]);
-      setIsReady(false);
-      setIsOpponentReady(false);
       setWord(null);
       setGuess(null);
       setRound(prevRound => prevRound + 1);
       setTimeLeft(30);
       setIsStopped(true);
+      setHasWinEventBeenHandled(false);
 
       if (isWin) {
         setScore(prevScore => prevScore + 1);
@@ -71,14 +79,26 @@ const Match: React.FC = () => {
     server.on("join", data => setOpponent(data.username));
     server.on("ready", () => setIsOpponentReady(true));
     server.on("start", data => {
+      setIsReady(false);
+      setIsOpponentReady(false);
       setWord(data.word);
       setIsStopped(false);
     });
     server.on("win", () => {
+      if (hasWinEventBeenHandled) return;
+
+      setHasWinEventBeenHandled(true);
       setOpponentScore(prevScore => prevScore + 1);
       endRound(false);
     });
-  }, [server, endRound]);
+
+    return () => {
+      server.off("join");
+      server.off("ready");
+      server.off("start");
+      server.off("win");
+    };
+  }, [server, endRound, hasWinEventBeenHandled]);
 
   if (round === 6)
     return (
@@ -88,6 +108,7 @@ const Match: React.FC = () => {
         <div className="flex" style={{ height: "calc(100vh - 96px)" }}>
           <GameScreen username={user.username} score={score} isLeft={true}>
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+              <Ready isReady={isReady} readyUp={readyUp} />
               <Results results={results} />
             </div>
           </GameScreen>
@@ -97,6 +118,7 @@ const Match: React.FC = () => {
             isLeft={false}
           >
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+              <Ready isReady={isOpponentReady} readyUp={null} />
               <Results results={results} />
             </div>
           </GameScreen>

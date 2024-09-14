@@ -42,6 +42,11 @@ const OpponentCanvas: React.FC = () => {
 
     server.on("stroke", data => drawStroke(data.stroke));
     server.on("clear", clear);
+
+    return () => {
+      server.off("stroke");
+      server.off("clear");
+    };
   }, [server]);
 
   useEffect(() => {

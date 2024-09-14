@@ -40,10 +40,20 @@ const JoinMatchModal: React.FC<Props> = ({ close }) => {
 
   const closeError = () => setMessage("");
 
+  const stopClose = (event: React.MouseEvent<HTMLDivElement>) => {
+    event.stopPropagation();
+  };
+
   return (
     <>
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
-        <div className="relative flex flex-col justify-center items-center gap-2 h-1/3 w-2/3 bg-white p-4 rounded-lg">
+      <div
+        onClick={close}
+        className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center"
+      >
+        <div
+          onClick={stopClose}
+          className="relative flex flex-col justify-center items-center gap-2 h-1/3 w-2/3 bg-white p-4 rounded-lg"
+        >
           <h2 className="text-2xl font-bold">Join Match</h2>
           <input
             ref={input}
