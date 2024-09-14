@@ -23,7 +23,7 @@ const CopyCodeButton: React.FC = () => {
   return (
     <button
       onClick={copyCode}
-      className="flex items-center gap-1 text-xl font-bold bg-gray-100 py-2 px-12 rounded uppercase drop-shadow-lg transition-colors duration-200 hover:bg-gray-300"
+      className="h-12 w-48 flex justify-center items-center gap-2 text-xl font-bold bg-gray-100 rounded uppercase drop-shadow-lg transition-colors duration-200 hover:bg-gray-300"
     >
       {isCopied ? (
         <>
