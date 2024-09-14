@@ -54,6 +54,12 @@ const JoinMatchModal: React.FC<Props> = ({ close }) => {
           onClick={stopClose}
           className="relative flex flex-col justify-center items-center gap-2 h-1/3 w-2/3 bg-white p-4 rounded-lg"
         >
+          <button
+            onClick={close}
+            className="absolute top-5 right-5 p-1 rounded transition-colors hover:bg-gray-200"
+          >
+            <IoMdClose className="text-2xl" />
+          </button>
           <h2 className="text-2xl font-bold">Join Match</h2>
           <input
             ref={input}
@@ -65,9 +71,6 @@ const JoinMatchModal: React.FC<Props> = ({ close }) => {
             className="bg-gray-900 rounded py-2 px-16 text-white text-xl uppercase drop-shadow-lg transition-colors hover:bg-gray-800"
           >
             Join
-          </button>
-          <button onClick={close} className="absolute top-5 right-5 p-1">
-            <IoMdClose className="text-2xl" />
           </button>
         </div>
       </div>
