@@ -2,7 +2,6 @@ import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import { IoMdClose } from "react-icons/io";
 import useServer from "../hooks/useServer";
-import useAuth from "../hooks/useAuth";
 import ErrorMessage from "./ErrorMessage";
 
 type Props = {
@@ -13,10 +12,11 @@ const JoinMatchModal: React.FC<Props> = ({ close }) => {
   const [message, setMessage] = useState("");
   const input = useRef<HTMLInputElement | null>(null);
   const server = useServer();
-  const user = useAuth();
   const router = useRouter();
 
-  const joinMatch = () => {
+  const joinMatch = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
     if (!input.current || !server || server.disconnected) return;
 
     if (input.current.value.length !== 6)
@@ -35,9 +35,8 @@ const JoinMatchModal: React.FC<Props> = ({ close }) => {
 
   const closeError = () => setMessage("");
 
-  const stopClose = (event: React.MouseEvent<HTMLDivElement>) => {
+  const stopClose = (event: React.MouseEvent<HTMLDivElement>) =>
     event.stopPropagation();
-  };
 
   return (
     <>
@@ -56,17 +55,22 @@ const JoinMatchModal: React.FC<Props> = ({ close }) => {
             <IoMdClose className="text-2xl" />
           </button>
           <h2 className="text-2xl font-bold">Join Match</h2>
-          <input
-            ref={input}
-            placeholder="Enter match code"
-            className="border-2 border-gray-300 p-2 rounded-lg w-72 outline-none transition-colors focus:border-gray-400"
-          />
-          <button
-            onClick={joinMatch}
-            className="bg-gray-900 rounded py-2 px-16 text-white text-xl uppercase drop-shadow-lg transition-colors hover:bg-gray-800"
+          <form
+            onSubmit={joinMatch}
+            className="flex flex-col items-center gap-2"
           >
-            Join
-          </button>
+            <input
+              ref={input}
+              autoFocus
+              placeholder="Enter match code"
+              className="border-2 border-gray-300 p-2 rounded-lg w-72 outline-none transition-colors focus:border-gray-400"
+            />
+            <input
+              type="submit"
+              value="Join"
+              className="bg-gray-900 rounded py-2 px-16 text-white text-xl uppercase drop-shadow-lg cursor-pointer transition-colors hover:bg-gray-800"
+            />
+          </form>
         </div>
       </div>
 
