@@ -3,12 +3,21 @@ import { Params } from "../types";
 import { useEffect, useState } from "react";
 import { FaCheck } from "react-icons/fa6";
 
-const CopyCodeButton: React.FC = () => {
+type Props = {
+  isLink: boolean;
+};
+
+const CopyCodeButton: React.FC<Props> = ({ isLink }) => {
   const [isCopied, setIsCopied] = useState(false);
   const params = useParams<Params>();
 
   const copyCode = () => {
-    navigator.clipboard.writeText(params.code);
+    if (isLink)
+      navigator.clipboard.writeText(
+        `${window.location.origin}/match/${params.code}`
+      );
+    else navigator.clipboard.writeText(params.code);
+
     setIsCopied(true);
   };
 
@@ -30,7 +39,7 @@ const CopyCodeButton: React.FC = () => {
           <FaCheck className="text-green-600" /> Copied
         </>
       ) : (
-        "Copy code"
+        <>{`Copy ${isLink ? "Link" : "Code"}`}</>
       )}
     </button>
   );
