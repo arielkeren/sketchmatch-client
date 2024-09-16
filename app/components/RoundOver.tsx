@@ -25,7 +25,7 @@ const RoundOver: React.FC<Props> = ({ round, startRound, word, results }) => {
 
   return (
     <div className="absolute top-1/2 left-1/2 flex flex-col gap-12 -translate-y-1/2 -translate-x-1/2">
-      <div className="">
+      <div>
         <h2 className="text-9xl font-bold select-none">Round {round}</h2>
         <p className="text-3xl font-medium select-none">Sketch a {word}</p>
       </div>

@@ -16,7 +16,8 @@ const Home: React.FC = () => {
 
   const createMatch = () => {
     if (!server || server.disconnected) return;
-    server.emit("create", { username: user.username });
+
+    server.emit("create");
     server.on("create", data => router.push(`match/${data.code}`));
   };
 

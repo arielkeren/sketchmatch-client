@@ -6,7 +6,7 @@ import Header from "@/app/components/Header";
 import useDisableContextMenu from "@/app/hooks/useDisableContextMenu";
 import useServer from "@/app/hooks/useServer";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Result, Word } from "@/app/types";
+import { Params, Result, Word } from "@/app/types";
 import WaitingForOpponent from "@/app/components/WaitingForOpponent";
 import GameScreen from "@/app/components/GameScreen";
 import useAuth from "@/app/hooks/useAuth";
@@ -16,6 +16,8 @@ import RoundInfo from "@/app/components/RoundInfo";
 import GameManager from "@/app/components/GameManager";
 import Results from "@/app/components/Results";
 import GameResult from "@/app/components/GameResult";
+import { useParams } from "next/navigation";
+import MatchNotFound from "@/app/components/MatchNotFound";
 
 const Match: React.FC = () => {
   const [word, setWord] = useState<Word | null>(null);
@@ -30,6 +32,8 @@ const Match: React.FC = () => {
   const [isOpponentReady, setIsOpponentReady] = useState(false);
   const [results, setResults] = useState<Result[]>([]);
   const [hasWinEventBeenHandled, setHasWinEventBeenHandled] = useState(false);
+  const [isNotFound, setIsNotFound] = useState(false);
+  const params = useParams<Params>();
   const canvas = useRef<HTMLCanvasElement | null>(null);
   const server = useServer();
   const user = useAuth();
@@ -70,35 +74,51 @@ const Match: React.FC = () => {
   useEffect(() => {
     if (!server || server.disconnected) return;
 
-    const username = localStorage.getItem("username");
-    if (username !== null) {
-      setOpponent(username);
-      localStorage.removeItem("username");
-    }
+    server.emit("join", { username: user.username, code: params.code });
+  }, [server, user.username, params.code]);
 
-    server.on("join", data => setOpponent(data.username));
-    server.on("ready", () => setIsOpponentReady(true));
-    server.on("start", data => {
+  useEffect(() => {
+    if (!server || server.disconnected) return;
+
+    const handleJoin = (data: any) => setOpponent(data.username);
+    const handleReady = () => setIsOpponentReady(true);
+    const handleStart = (data: any) => {
       setIsReady(false);
       setIsOpponentReady(false);
       setWord(data.word);
       setIsStopped(false);
-    });
-    server.on("win", () => {
+    };
+    const handleWin = () => {
       if (hasWinEventBeenHandled) return;
 
       setHasWinEventBeenHandled(true);
       setOpponentScore(prevScore => prevScore + 1);
       endRound(false);
-    });
+    };
+    const handleError = () => setIsNotFound(true);
+
+    server.on("join", handleJoin);
+    server.on("ready", handleReady);
+    server.on("start", handleStart);
+    server.on("win", handleWin);
+    server.on("error", handleError);
 
     return () => {
-      server.off("join");
-      server.off("ready");
-      server.off("start");
-      server.off("win");
+      server.off("join", handleJoin);
+      server.off("ready", handleReady);
+      server.off("start", handleStart);
+      server.off("win", handleWin);
+      server.off("error", handleError);
     };
   }, [server, endRound, hasWinEventBeenHandled]);
+
+  if (isNotFound)
+    return (
+      <>
+        <Header />
+        <MatchNotFound />
+      </>
+    );
 
   if (round === 6)
     return (

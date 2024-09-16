@@ -1,5 +1,5 @@
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { IoMdClose } from "react-icons/io";
 import useServer from "../hooks/useServer";
 import useAuth from "../hooks/useAuth";
@@ -22,20 +22,15 @@ const JoinMatchModal: React.FC<Props> = ({ close }) => {
     if (input.current.value.length !== 6)
       return setMessage("Match code must be 6 characters long");
 
-    if (input)
-      server.emit("join", {
-        code: input.current.value,
-        username: user.username,
-      });
-
-    server.on("join", data => {
-      if (!input.current) return;
-
-      localStorage.setItem("username", data.username);
-      router.push(`match/${input.current.value}`);
+    server.emit("check", {
+      code: input.current.value,
     });
 
-    server.on("error", data => setMessage(data.message));
+    server.on("check", data => {
+      if (!input.current) return;
+      if (!data.message) return router.push(`match/${input.current.value}`);
+      setMessage(data.message);
+    });
   };
 
   const closeError = () => setMessage("");
