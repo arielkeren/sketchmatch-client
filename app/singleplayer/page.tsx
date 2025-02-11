@@ -1,17 +1,18 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getRandomWord } from "../words";
+import { getRandomWord, WORDS } from "../words";
 import RoundOver from "../components/RoundOver";
 import Header from "../components/Header";
 import { Result, Word } from "../types";
 import Sketch from "../components/Sketch";
 import useDisableContextMenu from "../hooks/useDisableContextMenu";
+import * as tf from "@tensorflow/tfjs";
 
 const Singleplayer: React.FC = () => {
   const [round, setRound] = useState(1);
   const [isRoundOver, setIsRoundOver] = useState(true);
-  const [word, setWord] = useState<Word>("fan");
+  const [word, setWord] = useState<Word>("apple");
   const [guess, setGuess] = useState<Word | null>(null);
   const [results, setResults] = useState<Result[]>([]);
 

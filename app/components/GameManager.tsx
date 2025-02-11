@@ -1,6 +1,8 @@
 import { useEffect } from "react";
-import { isGuessResponse, Word } from "../types";
+import { Word } from "../types";
 import useServer from "../hooks/useServer";
+import * as tf from "@tensorflow/tfjs";
+import useModel from "../hooks/useModel";
 
 type Props = {
   canvas: React.MutableRefObject<HTMLCanvasElement | null>;
@@ -20,9 +22,10 @@ const GameManager: React.FC<Props> = ({
   endRound,
 }) => {
   const server = useServer();
+  const guessSketch = useModel();
 
   useEffect(() => {
-    const guessTimer = setInterval(guessSketch, 5000);
+    const guessTimer = setInterval(makeGuess, 3000);
     const roundTimer = setInterval(updateTime, 1000);
 
     function updateTime() {
@@ -37,38 +40,26 @@ const GameManager: React.FC<Props> = ({
       });
     }
 
-    async function guessSketch() {
+    async function makeGuess() {
       if (!canvas.current || !server || server.disconnected) return;
 
-      canvas.current.toBlob(async blob => {
-        if (!blob) return;
+      const guess = guessSketch(canvas.current);
 
-        const formData = new FormData();
-        formData.append("file", blob, "drawing.png");
+      if (!guess) return;
 
-        const response = await fetch("http://127.0.0.1:8000/", {
-          method: "POST",
-          body: formData,
-        });
-
-        const data = await response.json();
-
-        if (!isGuessResponse(data)) return;
-
-        setGuess(data.guess);
-        if (data.guess == word) {
-          clearInterval(roundTimer);
-          clearInterval(guessTimer);
-          endRound(true);
-        }
-      }, "image/jpg");
+      setGuess(guess);
+      if (guess == word) {
+        clearInterval(roundTimer);
+        clearInterval(guessTimer);
+        endRound(true);
+      }
     }
 
     return () => {
       clearInterval(roundTimer);
       clearInterval(guessTimer);
     };
-  }, [canvas, server, word, setGuess, setTimeLeft, endRound]);
+  }, [canvas, server, word, setGuess, setTimeLeft, endRound, guessSketch]);
 
   useEffect(() => {
     if (timeLeft === 0) endRound(false);

@@ -1,16 +1,16 @@
 import { Result, Word } from "./types";
 
 export const WORDS = [
-  "fan",
-  "moon",
-  "microphone",
-  "calculator",
-  "van",
-  "spider",
-  "parrot",
-  "piano",
-  "scorpion",
-  "broccoli",
+  "apple",
+  "hand",
+  "eye",
+  "fish",
+  "car",
+  "crown",
+  "dog",
+  "book",
+  "bicycle",
+  "airplane",
 ] as const;
 
 export const getRandomWord = (results: Result[]) => {

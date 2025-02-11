@@ -3,8 +3,9 @@
 import { useState, useRef, useEffect } from "react";
 import Canvas from "./Canvas";
 import RoundInfo from "./RoundInfo";
-import { isGuessResponse, Word } from "../types";
+import { Word } from "../types";
 import SketchInfo from "./SketchInfo";
+import useModel from "../hooks/useModel";
 
 type Props = {
   round: number;
@@ -24,9 +25,12 @@ const Sketch: React.FC<Props> = ({
   const canvas = useRef<HTMLCanvasElement | null>(null);
   const [timeLeft, setTimeLeft] = useState(30);
 
+  const guessSketch = useModel();
+
   useEffect(() => {
-    const guessTimer = setInterval(guessSketch, 5000);
+    const guessTimer = setInterval(makeGuess, 3000);
     const roundTimer = setInterval(updateTime, 1000);
+    console.log("loaded");
 
     function updateTime() {
       setTimeLeft(prevTime => {
@@ -40,38 +44,26 @@ const Sketch: React.FC<Props> = ({
       });
     }
 
-    async function guessSketch() {
+    async function makeGuess() {
       if (!canvas.current) return;
 
-      canvas.current.toBlob(async blob => {
-        if (!blob) return;
+      const guess = guessSketch(canvas.current);
 
-        const formData = new FormData();
-        formData.append("file", blob, "drawing.png");
+      if (!guess) return;
 
-        const response = await fetch("http://127.0.0.1:8000/", {
-          method: "POST",
-          body: formData,
-        });
-
-        const data = await response.json();
-
-        if (!isGuessResponse(data)) return;
-
-        changeGuess(data.guess);
-        if (data.guess == word) {
-          clearInterval(roundTimer);
-          clearInterval(guessTimer);
-          endRound();
-        }
-      }, "image/jpg");
+      changeGuess(guess);
+      if (guess == word) {
+        clearInterval(roundTimer);
+        clearInterval(guessTimer);
+        endRound();
+      }
     }
 
     return () => {
       clearInterval(roundTimer);
       clearInterval(guessTimer);
     };
-  }, [changeGuess, endRound, word]);
+  }, [changeGuess, endRound, word, guessSketch]);
 
   useEffect(() => {
     if (timeLeft === 0) {

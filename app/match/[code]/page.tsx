@@ -95,7 +95,11 @@ const Match: React.FC = () => {
       setOpponentScore(prevScore => prevScore + 1);
       endRound(false);
     };
-    const handleError = () => setIsNotFound(true);
+    const handleError = (data: any) => {
+      console.log(data);
+      console.log(opponent);
+      setIsNotFound(true);
+    };
 
     server.on("join", handleJoin);
     server.on("ready", handleReady);
